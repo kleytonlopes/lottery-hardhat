@@ -1,11 +1,12 @@
 import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-etherscan";
+import "@nomicfoundation/hardhat-toolbox";
 import "hardhat-deploy";
-import "solidity-coverage";
-import "hardhat-gas-reporter";
-import "hardhat-contract-sizer";
+import "@nomicfoundation/hardhat-ethers";
+import '@typechain/hardhat'
+import '@nomicfoundation/hardhat-chai-matchers'
 import dotenv from 'dotenv'; 
+dotenv.config();
+
 
 const config: HardhatUserConfig = {
   solidity: {
