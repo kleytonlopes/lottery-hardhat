@@ -54,6 +54,10 @@ describe("Raffle Unit Tests", async function () {
             await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
             const playerFromContract = await raffleContract.getPlayer(0);
             assert.equal(playerFromContract, deployerAddress)
+        }),
+        it("emits event on enter", async function() {
+            await expect(raffleContract.enterRaffle({value: `${raffleEntranceFee}`}))
+                .to.emit(raffleContract,"RaffleEnter");
         })
     })
 })
