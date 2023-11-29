@@ -18,13 +18,13 @@ const deployLottery: DeployFunction = async function deploy({ getNamedAccounts, 
     const isDevelopmentChain = developmentChainIds.includes(chainId);
     const networkConfig = networks[chainId];
 
-    let vrfCoordinatorV2Address, subscriptionId;
+    let vrfCoordinatorV2Address, subscriptionId, vrfCoordinatorV2MockContract;
 
     if(isDevelopmentChain){
         const {address} = await deployments.get(
             VRF_COORDNINATOR_V2_MOCK_NAME
         );
-        const vrfCoordinatorV2MockContract = await ethers.getContractAt(
+        vrfCoordinatorV2MockContract = await ethers.getContractAt(
             VRF_COORDNINATOR_V2_MOCK_NAME, address
         );
         const transactionResponse = await vrfCoordinatorV2MockContract.createSubscription();
@@ -57,6 +57,10 @@ const deployLottery: DeployFunction = async function deploy({ getNamedAccounts, 
         waitConfirmations,
         log: true,
     });
+    await vrfCoordinatorV2MockContract?.addConsumer(
+        subscriptionId, deployResult.address
+    );
+
     console.log(deployResult.abi);
 }
 
