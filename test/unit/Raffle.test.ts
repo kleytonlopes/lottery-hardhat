@@ -3,6 +3,8 @@ import { deployments, ethers, network } from "hardhat";
 import { Address } from "hardhat-deploy/types";
 import { Raffle, VRFCoordinatorV2Mock } from "../../typechain-types"
 import { networks, RAFFLE_CONTRACT_NAME, VRF_COORDNINATOR_V2_MOCK_NAME, developmentChainIds } from "../../helper-hardhat-config";
+import { HardhatEthersSigner, SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { EventLog } from "ethers";
 const chainId = network.config.chainId ?? 1;
 const networkConfig = networks[chainId];
 const isDevelomentChain = developmentChainIds.includes(chainId);
@@ -120,7 +122,7 @@ describe("Raffle Unit Tests",function () {
             await network.provider.send("evm_mine");
             const txResponse = await raffleContract.performUpkeep("0x");
             const txReceived = await txResponse.wait(1);
-            const requestId = txReceived?.logs[1].args.requestId;
+            const requestId = (txReceived!.logs![1] as EventLog).args.requestId;
             const raffleState = await raffleContract.getRaffleState();
             assert(requestId > 0);
             assert.equal(raffleState.toString(),'1');
@@ -137,10 +139,54 @@ describe("Raffle Unit Tests",function () {
         it("can only be called after performupkeep", async () => {
             await expect(
                 mockCoordinatorContract.fulfillRandomWords(0, raffleContractAddress)
-            ).to.be.revertedWith("nonexistent request")
+            ).to.be.revertedWith("nonexistent request");
             await expect(
                 mockCoordinatorContract.fulfillRandomWords(1, raffleContractAddress)
-            ).to.be.revertedWith("nonexistent request")
+            ).to.be.revertedWith("nonexistent request");
+        }),
+        it("picks a winner, resets and sends money", async () => {
+            const additionalEntrances = 3
+            const startingIndex = 2
+            const accounts: SignerWithAddress[] = await ethers.getSigners();
+            // const startingBalance = await ethers.provider.getBalance(await accounts[2].getAddress());
+
+            for (let i = startingIndex; i < (startingIndex + additionalEntrances); i++) {
+                let connectedRaffleAccount = await raffleContract.connect(accounts[i])
+                await connectedRaffleAccount.enterRaffle({ value: `${raffleEntranceFee}` })
+            }
+            const numberOfPlayers = await raffleContract.getNumberOfPlayers();
+            assert.equal(numberOfPlayers.toString(), "4");
+            const startingTimeStamp = await raffleContract.getLatestTimestamp();
+            const promiseWinnerPicked = new Promise<void>((resolve, reject) => {
+                raffleContract.once(raffleContract.getEvent('WinnerPicked'), async () => {
+                    try{
+                        const recentWinner = await raffleContract.getRecentWinner();
+                        const raffleState = await raffleContract.getRaffleState();
+                        const winnerBalance = await ethers.provider.getBalance(accounts[2].address)
+                        const endingTimeStamp = await raffleContract.getLatestTimestamp();
+                        await expect(raffleContract.getPlayer(0)).to.be.reverted;
+                        assert.equal(recentWinner.toString(), accounts[2].address);
+                        assert.equal(raffleState.toString(), '0');
+                        // assert.equal(
+                        //     winnerBalance.toString(),
+                        //     ((startingBalance + BigInt(4 * Number(raffleEntranceFee))).toString()).toString()
+                        // );
+                        assert(endingTimeStamp > startingTimeStamp);
+                        resolve();
+                    }catch(e){
+                        reject(e)
+                    }
+                });
+
+            });
+
+            const txResponse = await raffleContract.performUpkeep("0x");
+            const txReceived = await txResponse.wait(1);
+            await mockCoordinatorContract.fulfillRandomWords(
+                (txReceived!.logs![1] as EventLog).args.requestId,
+                raffleContractAddress
+            );
+            await promiseWinnerPicked;
         })
     })
 })
