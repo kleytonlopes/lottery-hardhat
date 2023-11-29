@@ -3,7 +3,7 @@ import { deployments, ethers, network } from "hardhat";
 import { Address } from "hardhat-deploy/types";
 import { Raffle, VRFCoordinatorV2Mock } from "../../typechain-types"
 import { networks, RAFFLE_CONTRACT_NAME, VRF_COORDNINATOR_V2_MOCK_NAME, developmentChainIds } from "../../helper-hardhat-config";
-import { HardhatEthersSigner, SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { EventLog } from "ethers";
 const chainId = network.config.chainId ?? 1;
 const networkConfig = networks[chainId];
@@ -144,6 +144,7 @@ describe("Raffle Unit Tests",function () {
                 mockCoordinatorContract.fulfillRandomWords(1, raffleContractAddress)
             ).to.be.revertedWith("nonexistent request");
         }),
+        //TODO: This test mus be checked a refactored
         it("picks a winner, resets and sends money", async () => {
             const additionalEntrances = 3
             const startingIndex = 2
@@ -162,7 +163,7 @@ describe("Raffle Unit Tests",function () {
                     try{
                         const recentWinner = await raffleContract.getRecentWinner();
                         const raffleState = await raffleContract.getRaffleState();
-                        const winnerBalance = await ethers.provider.getBalance(accounts[2].address)
+                        // const winnerBalance = await ethers.provider.getBalance(accounts[2].address)
                         const endingTimeStamp = await raffleContract.getLatestTimestamp();
                         await expect(raffleContract.getPlayer(0)).to.be.reverted;
                         assert.equal(recentWinner.toString(), accounts[2].address);
