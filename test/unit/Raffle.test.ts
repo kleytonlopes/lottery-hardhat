@@ -87,6 +87,13 @@ describe("Raffle Unit Tests", async function () {
             assert.equal(raffleState.toString(), "1");
             assert(!upkeepNeeded);
         }),
+        it("returns true enough time has passed, has players, eth and is open", async function() {
+            await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval]);
+            await network.provider.send("evm_mine");
+            const {upkeepNeeded} = await raffleContract.checkUpkeep.staticCall("0x");
+            assert(upkeepNeeded);
         })
     })
 })
