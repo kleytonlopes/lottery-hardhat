@@ -30,7 +30,7 @@ const deployLottery: DeployFunction = async function deploy({ getNamedAccounts, 
         const transactionResponse = await vrfCoordinatorV2MockContract.createSubscription();
         const transactionReceipt =  await transactionResponse.wait();
         vrfCoordinatorV2Address = address;
-        subscriptionId = transactionReceipt.logs[0].args.subId;
+        subscriptionId = transactionReceipt?.logs[0].args.subId;
         await vrfCoordinatorV2MockContract.fundSubscription(
             subscriptionId, VRF_SUB_FUND_AMOUNT
         );
@@ -60,4 +60,5 @@ const deployLottery: DeployFunction = async function deploy({ getNamedAccounts, 
     console.log(deployResult.abi);
 }
 
+deployLottery.tags = ["all", "raffle", "Raffle"];
 export default deployLottery;
