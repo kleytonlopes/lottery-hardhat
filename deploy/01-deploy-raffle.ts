@@ -57,7 +57,7 @@ const deployLottery: DeployFunction = async function deploy({ getNamedAccounts, 
         waitConfirmations,
         log: true,
     });
-    console.log(deployResult);
+    console.log(deployResult.abi);
 }
 
 export default deployLottery;
