@@ -75,6 +75,18 @@ describe("Raffle Unit Tests", async function () {
             await network.provider.send("evm_mine");
             const {upkeepNeeded} = await raffleContract.checkUpkeep.staticCall("0x");
             assert(!upkeepNeeded);
+        }),
+        it("returns false if raffle is't open", async function() {
+            await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval]);
+            await network.provider.send("evm_mine");
+            await raffleContract.performUpkeep("0x");
+            const raffleState = await raffleContract.getRaffleState();
+            const {upkeepNeeded} = await raffleContract.checkUpkeep.staticCall("0x");
+            assert.equal(raffleState.toString(), "1");
+            assert(!upkeepNeeded);
+        }),
         })
     })
 })
