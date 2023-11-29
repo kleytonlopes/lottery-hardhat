@@ -128,22 +128,19 @@ describe("Raffle Unit Tests",function () {
         })
     }),
     describe("fulfillRandomWords", function(){
-
-        it("revert if checkUpkeep is false", async function() {
-            beforeEach(async () => {
-                await raffleContract.enterRaffle({ value: `${raffleEntranceFee}` })
-                const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
-                await network.provider.send("evm_increaseTime", [addInterval])
-                await network.provider.send("evm_mine");
-            }),
-            it("can only be called after performupkeep", async () => {
-                await expect(
-                    mockCoordinatorContract.fulfillRandomWords(0, raffleContractAddress)
-                ).to.be.revertedWith("nonexistent request")
-                await expect(
-                    mockCoordinatorContract.fulfillRandomWords(1, raffleContractAddress)
-                ).to.be.revertedWith("nonexistent request")
-            })
+        beforeEach(async () => {
+            await raffleContract.enterRaffle({ value: `${raffleEntranceFee}` })
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval])
+            await network.provider.send("evm_mine");
+        }),
+        it("can only be called after performupkeep", async () => {
+            await expect(
+                mockCoordinatorContract.fulfillRandomWords(0, raffleContractAddress)
+            ).to.be.revertedWith("nonexistent request")
+            await expect(
+                mockCoordinatorContract.fulfillRandomWords(1, raffleContractAddress)
+            ).to.be.revertedWith("nonexistent request")
         })
     })
 })
