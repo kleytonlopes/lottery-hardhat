@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "outDir": "dist"
   },
-  "include": ["./scripts", "./test", "./deploy", "./deploy-helpers"],
+  "include": ["./scripts", "./test", "./deploy", "./deploy-helpers", "./typechain-types"],
   "files": ["./hardhat.config.ts", "./helper-hardhat-config.ts"]
 }
   
