@@ -95,5 +95,15 @@ describe("Raffle Unit Tests",function () {
             const {upkeepNeeded} = await raffleContract.checkUpkeep.staticCall("0x");
             assert(upkeepNeeded);
         })
+    }),
+    describe("performUpkeep", function(){
+        it("it can only run is checkUpkeep is true", async function() {
+            await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval]);
+            await network.provider.send("evm_mine");
+            const tx = await raffleContract.performUpkeep("0x");
+            assert(tx);
+        })
     })
 })
