@@ -51,7 +51,7 @@ describe("Raffle Unit Tests", async function () {
                 .to.be.revertedWithCustomError(raffleContract,"Raffle__NotEnoughETHEntered");
         }),
         it("record players when they enter", async function() {
-            await raffleContract.enterRaffle({value: String(raffleEntranceFee)});
+            await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
             const playerFromContract = await raffleContract.getPlayer(0);
             assert.equal(playerFromContract, deployerAddress)
         })
