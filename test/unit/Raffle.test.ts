@@ -1,5 +1,5 @@
 import { time } from "@nomicfoundation/hardhat-network-helpers";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { deployments, ethers, network } from "hardhat";
 import { Raffle, VRFCoordinatorV2Mock } from "../../typechain-types"
 import { networks, RAFFLE_CONTRACT_NAME, VRF_COORDNINATOR_V2_MOCK_NAME, developmentChainIds } from "../../helper-hardhat-config";
@@ -38,6 +38,13 @@ describe("Raffle Unit Tests", async function () {
              assert.equal(lastTimestamp, lastBlockTimestamp);
              assert.equal(callbakGasLimit.toString(), networkConfig.callbackGasLimit);
              //TODO: more constructor tests
+        })
+    })
+
+    describe("enterRaffle", async function(){
+        it("reverts when you don't pay enough", async function() {
+            await expect(raffleContract.enterRaffle())
+                .to.be.revertedWithCustomError(raffleContract,"Raffle__NotEnoughETHEntered");
         })
     })
 })
