@@ -104,6 +104,12 @@ describe("Raffle Unit Tests",function () {
             await network.provider.send("evm_mine");
             const tx = await raffleContract.performUpkeep("0x");
             assert(tx);
+        }),
+        it("revert if checkUpkeep is false", async function() {
+            await expect(raffleContract.performUpkeep("0x")).to.revertedWithCustomError(
+                raffleContract,
+                "Raffle__UpkeepNotNeeded"
+            );
         })
     })
 })
