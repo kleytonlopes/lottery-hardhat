@@ -60,14 +60,21 @@ describe("Raffle Unit Tests", async function () {
         it("doesnt allow entrance when raffle is calculating", async function() {
             await raffleContract.enterRaffle({value: raffleEntranceFee.valueOf()});
             const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
-            console.log(addInterval);
-            await network.provider.send("evm_increaseTime", [addInterval.valueOf()]);
+            await network.provider.send("evm_increaseTime", [addInterval]);
             await network.provider.request({method: "evm_mine", params: []});
             //or => await network.provider.send("evm_mine");
-            const zeroBytes = new Uint8Array()
-            await raffleContract.performUpkeep(zeroBytes);
+            await raffleContract.performUpkeep("0x");
             await expect(raffleContract.enterRaffle({ value: `${raffleEntranceFee}` }))
                 .to.be.revertedWithCustomError(raffleContract,"Raffle__NotOpen");
+        })
+    }),
+    describe("checkUpkeep", async function(){
+        it("returns false if people haven't send any ETH", async function() {
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval]);
+            await network.provider.send("evm_mine");
+            const {upkeepNeeded} = await raffleContract.checkUpkeep.staticCall("0x");
+            assert(!upkeepNeeded);
         })
     })
 })
