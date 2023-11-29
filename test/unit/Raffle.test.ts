@@ -110,6 +110,19 @@ describe("Raffle Unit Tests",function () {
                 raffleContract,
                 "Raffle__UpkeepNotNeeded"
             );
+        }),
+        it("updates the raffle state, emits an event and calls the VRFCoordinatorV2", async function() {
+            await raffleContract.enterRaffle({value: `${raffleEntranceFee}`});
+            const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+            await network.provider.send("evm_increaseTime", [addInterval]);
+            await network.provider.send("evm_mine");
+            const txResponse = await raffleContract.performUpkeep("0x");
+            const txReceived = await txResponse.wait(1);
+            const requestId = txReceived?.logs[1].args.requestId;
+            const raffleState = await raffleContract.getRaffleState();
+            assert(requestId > 0);
+            assert.equal(raffleState.toString(),'1');
+
         })
     })
 })
