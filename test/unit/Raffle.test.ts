@@ -8,7 +8,7 @@ const networkConfig = networks[chainId];
 const isDevelomentChain = developmentChainIds.includes(chainId);
 
 !isDevelomentChain ? describe.skip :
-describe("Raffle Unit Tests", async function () {
+describe("Raffle Unit Tests",function () {
     let deployerAddress: Address;
     let raffleContract: Raffle;
     let mockCoordinatorContract: VRFCoordinatorV2Mock;
@@ -28,7 +28,7 @@ describe("Raffle Unit Tests", async function () {
 
     });
 
-    describe("constructor", async function(){
+    describe("constructor", function(){
         it("Initializes the raffle correctly", async function() {
              const state = await raffleContract.getRaffleState();
              const numberOfPlayers = await raffleContract.getNumberOfPlayers();
@@ -43,7 +43,7 @@ describe("Raffle Unit Tests", async function () {
         })
     })
 
-    describe("enterRaffle", async function(){
+    describe("enterRaffle",function(){
         it("reverts when you don't pay enough", async function() {
             await expect(raffleContract.enterRaffle())
                 .to.be.revertedWithCustomError(raffleContract,"Raffle__NotEnoughETHEntered");
@@ -68,7 +68,7 @@ describe("Raffle Unit Tests", async function () {
                 .to.be.revertedWithCustomError(raffleContract,"Raffle__NotOpen");
         })
     }),
-    describe("checkUpkeep", async function(){
+    describe("checkUpkeep", function(){
         it("returns false if people haven't send any ETH", async function() {
             const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
             await network.provider.send("evm_increaseTime", [addInterval]);
