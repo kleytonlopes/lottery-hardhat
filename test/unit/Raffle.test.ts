@@ -11,6 +11,7 @@ const isDevelomentChain = developmentChainIds.includes(chainId);
 describe("Raffle Unit Tests",function () {
     let deployerAddress: Address;
     let raffleContract: Raffle;
+    let raffleContractAddress: Address;
     let mockCoordinatorContract: VRFCoordinatorV2Mock;
     let raffleEntranceFee: BigInt;
     let raffleInterval: BigInt;
@@ -20,8 +21,9 @@ describe("Raffle Unit Tests",function () {
         await deployments.fixture(["all"]);
         deployerAddress = (await ethers.provider.getSigner()).address;
         const raffleDeployment = await deployments.get(RAFFLE_CONTRACT_NAME);
+        raffleContractAddress = raffleDeployment.address;
         const mockCoordinatorDeployment = await deployments.get(VRF_COORDNINATOR_V2_MOCK_NAME);
-        raffleContract = await ethers.getContractAt(RAFFLE_CONTRACT_NAME, raffleDeployment.address);
+        raffleContract = await ethers.getContractAt(RAFFLE_CONTRACT_NAME, raffleContractAddress);
         mockCoordinatorContract = await ethers.getContractAt(VRF_COORDNINATOR_V2_MOCK_NAME, mockCoordinatorDeployment.address);
         raffleEntranceFee = await raffleContract.getEntranceFee();
         raffleInterval = await raffleContract.getInterval();
@@ -123,6 +125,25 @@ describe("Raffle Unit Tests",function () {
             assert(requestId > 0);
             assert.equal(raffleState.toString(),'1');
 
+        })
+    }),
+    describe("fulfillRandomWords", function(){
+
+        it("revert if checkUpkeep is false", async function() {
+            beforeEach(async () => {
+                await raffleContract.enterRaffle({ value: `${raffleEntranceFee}` })
+                const addInterval = Number(raffleInterval.valueOf() + BigInt(1));
+                await network.provider.send("evm_increaseTime", [addInterval])
+                await network.provider.send("evm_mine");
+            }),
+            it("can only be called after performupkeep", async () => {
+                await expect(
+                    mockCoordinatorContract.fulfillRandomWords(0, raffleContractAddress)
+                ).to.be.revertedWith("nonexistent request")
+                await expect(
+                    mockCoordinatorContract.fulfillRandomWords(1, raffleContractAddress)
+                ).to.be.revertedWith("nonexistent request")
+            })
         })
     })
 })
